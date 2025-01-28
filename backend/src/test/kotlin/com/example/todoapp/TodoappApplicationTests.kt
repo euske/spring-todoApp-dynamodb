@@ -1,19 +1,23 @@
 package com.example.todoapp
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.hasSize
+import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
@@ -25,12 +29,19 @@ import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-class TodoappApplicationTests {
-
+class TodoappApplicationTests(
+	@Value("\${aws.dynamodb.region}")
+	private val region: String,
+	@Value("\${aws.dynamodb.endpoint}")
+	private val endpoint: String,
+	@Value("\${aws.dynamodb.tableName}")
+	private val tableName: String,
+) {
+	private val credentials = AwsBasicCredentials.create("xxx", "yyy")
 	private val client = DynamoDbClient.builder()
-		.endpointOverride(URI.create("http://localhost:4566"))
-		.credentialsProvider(AnonymousCredentialsProvider.create())
-		.region(Region.AP_NORTHEAST_1)
+		.endpointOverride(URI.create(endpoint))
+		.region(Region.of(region))
+		.credentialsProvider(StaticCredentialsProvider.create(credentials))
 		.build()
 
 	@Autowired
@@ -67,21 +78,29 @@ class TodoappApplicationTests {
 		}
 	}
 
+	fun postTodo(text: String): String {
+		val result = mockMvc
+			.perform(
+				post("/todo")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("{\"text\":\"$text\"}"))
+			.andReturn()
+		val id = result.response.contentAsString
+		return id
+	}
+
 	@Test
 	fun `todoエンドポイントにfooというJSONをPOSTすると、データベースに追加されている`() {
 		// setup
-		deleteAllItems("test")
+		deleteAllItems(tableName)
 
 		val randomText = "foo${Math.random()}"
 
 		// action
-		mockMvc.perform(post("/todo")
-			.contentType(MediaType.APPLICATION_JSON)
-			.content("{\"text\":\"$randomText\"}"))
-			.andExpect(status().isOk)
+		postTodo(randomText)
 
 		// check
-		val items = scanAllItems("test")
+		val items = scanAllItems(tableName)
 		assertThat(items.size, equalTo(1))
 
 		val firstItem: Map<String, AttributeValue> = items[0]
@@ -93,42 +112,87 @@ class TodoappApplicationTests {
 	@Test
 	fun `複数回JSONをPOSTすると、その数だけデータベースに追加されている`() {
 		// setup
-		deleteAllItems("test")
+		deleteAllItems(tableName)
 
 		// action
-		mockMvc.perform(post("/todo")
-			.contentType(MediaType.APPLICATION_JSON)
-			.content("{\"text\":\"foo\"}"))
-			.andExpect(status().isOk)
-		mockMvc.perform(post("/todo")
-			.contentType(MediaType.APPLICATION_JSON)
-			.content("{\"text\":\"foo\"}"))
-			.andExpect(status().isOk)
+		postTodo("foo")
+		postTodo("foo")
 
 		// check
-		val items = scanAllItems("test")
+		val items = scanAllItems(tableName)
 		assertThat(items.size, equalTo(2))
 	}
 
 	@Test
 	fun `GETをすると現在のデータベースの項目すべてがリストとして返される`() {
 		// setup
-		deleteAllItems("test")
-		val item = mapOf(
-			"PK" to AttributeValue.fromS(UUID.randomUUID().toString()),
-			"text" to AttributeValue.fromS("test123")
-		)
-		val putItemRequest = PutItemRequest.builder()
-			.tableName("test")
-			.item(item)
-			.build()
-		client.putItem(putItemRequest)
+		deleteAllItems(tableName)
+		postTodo("test123")
 
 		// action + check
 		mockMvc.perform(get("/todo"))
 			.andExpect(status().isOk)
 			.andExpect(jsonPath("$.length()").value(1))
 			.andExpect(jsonPath("$[0].text").value("test123"))
+	}
+
+	@Test
+	fun `POSTしたときに新しく追加されたPKを返す`() {
+		// setup
+		deleteAllItems(tableName)
+
+		// action
+		val id = postTodo("foo")
+
+		// check
+		mockMvc.perform(get("/todo"))
+			.andExpect(status().isOk)
+			.andExpect(jsonPath("$.length()").value(1))
+			.andExpect(jsonPath("$[0].id").value(id))
+	}
+
+	@Test
+	fun `GET todo {id}をするとその項目だけを返す`() {
+		// setup
+		deleteAllItems(tableName)
+		val id1 = postTodo("foo")
+		val id2 = postTodo("bar")
+
+		// action + check
+		mockMvc.perform(get("/todo/{id1}", id1))
+			.andExpect(jsonPath("$.id").value(id1))
+			.andExpect(jsonPath("$.text").value("foo"))
+	}
+
+	@Test
+	fun `存在しないIDを取得しようとすると404エラーを返す`() {
+		// setup
+		deleteAllItems(tableName)
+
+		// action + check
+		mockMvc.perform(get("/todo/{id1}", "1234"))
+			.andExpect(status().isNotFound)
+	}
+
+	@Test
+	fun `DELETE todo {id}すると、そのIDを削除する`() {
+		// setup
+		deleteAllItems(tableName)
+		val id1 = postTodo("foo")
+		val id2 = postTodo("bar")
+
+		// action
+		mockMvc.perform(delete("/todo/{id1}", id1))
+			.andExpect(status().isOk)
+
+		// check
+		val result = mockMvc.perform(get("/todo"))
+			.andReturn()
+		val content = result.response.contentAsString
+		val mapper = ObjectMapper()
+		val items = mapper.readValue<List<TodoItem>>(content)
+		assertThat(items.find { it.id == id1 }, equalTo(null))
+		assertThat(items.find { it.id == id2 }, not(equalTo(null)))
 	}
 
 }

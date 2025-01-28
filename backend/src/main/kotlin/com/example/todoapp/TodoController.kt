@@ -1,82 +1,98 @@
 package com.example.todoapp
 
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest
 import java.net.URI
+import java.util.*
 
-class TodoRequest {
-    var text: String = ""
-}
+data class TodoRequest(
+    val text: String = ""
+)
 
-//class TodoItem {
-//    var PK: String = "" //variable
-//    var text: String = ""
-//}
-//
 data class TodoItem(
-    val PK: String, //value
-    val text: String
+    val id: String = "", //value
+    val text: String = ""
 )
 
 @RestController
-class TodoController {
+class TodoController(
+    @Value("\${aws.dynamodb.region}")
+    private val region: String,
+    @Value("\${aws.dynamodb.endpoint}")
+    private val endpoint: String,
+    @Value("\${aws.dynamodb.tableName}")
+    private val tableName: String,
+) {
 
     @PostMapping("/todo")
     fun addTodoItem(@RequestBody request: TodoRequest): String {
-        println("request.text=${request.text}")
+        val PK = UUID.randomUUID().toString()
         val item = mapOf(
-            "PK" to AttributeValue.fromS("PK${Math.random()}"),
+            "PK" to AttributeValue.fromS(PK),
             "text" to AttributeValue.fromS(request.text)
         )
         val client = DynamoDbClient.builder()
-            .endpointOverride(URI.create("http://localhost:4566"))
-            .credentialsProvider(AnonymousCredentialsProvider.create())
-            .region(Region.AP_NORTHEAST_1)
+            .endpointOverride(URI.create(endpoint))
+            .region(Region.of(region))
             .build()
         val putItemRequest = PutItemRequest.builder()
-            .tableName("test")
+            .tableName(tableName)
             .item(item)
             .build()
         client.putItem(putItemRequest)
-
-        return "OK"
+        return PK
     }
 
     @GetMapping("/todo")
     fun getAllTodoItems(): List<TodoItem> {
         val client = DynamoDbClient.builder()
-            .endpointOverride(URI.create("http://localhost:4566"))
-            .credentialsProvider(AnonymousCredentialsProvider.create())
-            .region(Region.AP_NORTHEAST_1)
+            .endpointOverride(URI.create(endpoint))
+            .region(Region.of(region))
             .build()
         val request = ScanRequest.builder()
-            .tableName("test")
+            .tableName(tableName)
             .build()
         val response = client.scan(request)
         val items: List<Map<String, AttributeValue>> = response.items().toList()
-//        val todoItems: MutableList<TodoItem> = mutableListOf()
-//        for (item in items) {
-//            val todoItem = TodoItem()
-//            todoItem.PK = item["PK"]!!.s()
-//            todoItem.text = item["text"]!!.s()
-//            todoItems.add(todoItem)
-//        }
-
-        // todoItems = items.map( (item) => { ... } )
-
         // Idiomatic
         val todoItems = items.map {
             TodoItem(
-                PK = it["PK"]!!.s(),
+                id = it["PK"]!!.s(),
                 text = it["text"]!!.s()
             )
         }
         return todoItems
     }
 
+    @GetMapping("/todo/{id}")
+    fun getTodoItem(@PathVariable id: String): ResponseEntity<TodoItem> {
+        val todoItems = getAllTodoItems()
+        val todoItem = todoItems.find { it.id == id }
+        if (todoItem != null) {
+            return ResponseEntity(todoItem, HttpStatus.OK)
+        } else {
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    @DeleteMapping("/todo/{id}")
+    fun deleteTodoItem(@PathVariable id: String) {
+        val client = DynamoDbClient.builder()
+            .endpointOverride(URI.create(endpoint))
+            .region(Region.of(region))
+            .build()
+        val deleteRequest = DeleteItemRequest.builder()
+            .tableName(tableName)
+            .key(mapOf("PK" to AttributeValue.fromS(id))) // .key({ PK: item.PK })
+            .build()
+        client.deleteItem(deleteRequest)
+    }
 }
