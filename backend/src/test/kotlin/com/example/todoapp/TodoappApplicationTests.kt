@@ -9,40 +9,50 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
-import software.amazon.awssdk.auth.credentials.AwsCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest
 import java.net.URI
-import java.util.*
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+	properties = ["spring.main.allow-bean-definition-overriding=true"]
+)
 @AutoConfigureMockMvc
 class TodoappApplicationTests(
-	@Value("\${aws.dynamodb.region}")
-	private val region: String,
-	@Value("\${aws.dynamodb.endpoint}")
-	private val endpoint: String,
+	@Autowired
+	private val client: DynamoDbClient,
 	@Value("\${aws.dynamodb.tableName}")
 	private val tableName: String,
 ) {
-	private val credentials = AwsBasicCredentials.create("xxx", "yyy")
-	private val client = DynamoDbClient.builder()
-		.endpointOverride(URI.create(endpoint))
-		.region(Region.of(region))
-		.credentialsProvider(StaticCredentialsProvider.create(credentials))
-		.build()
+	@TestConfiguration
+	class DynamoDbTestConfiguration(
+		@Value("\${aws.dynamodb.region}")
+		private val region: String,
+		@Value("\${aws.dynamodb.endpoint}")
+		private val endpoint: String,
+	) {
+		@Bean
+		fun dynamoDbClient(): DynamoDbClient {
+			val credentials = AwsBasicCredentials.create("xxx", "yyy")
+			return DynamoDbClient.builder()
+				.endpointOverride(URI.create(endpoint))
+				.region(Region.of(region))
+				.credentialsProvider(StaticCredentialsProvider.create(credentials))
+				.build()
+		}
+	}
 
 	@Autowired
 	private lateinit var mockMvc: MockMvc
