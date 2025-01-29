@@ -26,9 +26,10 @@ class DynamoDbConfiguration(
             .region(Region.of(region))
             .credentialsProvider(
                 AwsCredentialsProviderChain.of(
-                StaticCredentialsProvider.create(dummyCredentials),
-                DefaultCredentialsProvider.create(),
-            ))
+                    DefaultCredentialsProvider.create(),
+                    StaticCredentialsProvider.create(dummyCredentials),
+                )
+            )
             .build()
     }
 }
