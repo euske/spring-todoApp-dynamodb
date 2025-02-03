@@ -82,7 +82,7 @@ class TodoappApplicationTests(
 		for (item in items) {
 			val deleteRequest = DeleteItemRequest.builder()
 				.tableName(tableName)
-				.key(mapOf("PK" to item["PK"])) // .key({ PK: item.PK })
+				.key(mapOf("id" to item["id"])) // .key({ id: item.id })
 				.build()
 			client.deleteItem(deleteRequest)
 		}
@@ -147,7 +147,7 @@ class TodoappApplicationTests(
 	}
 
 	@Test
-	fun `POSTしたときに新しく追加されたPKを返す`() {
+	fun `POSTしたときに新しく追加されたidを返す`() {
 		// setup
 		deleteAllItems(tableName)
 

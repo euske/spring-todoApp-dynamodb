@@ -31,9 +31,9 @@ class TodoController(
 
     @PostMapping("/todo")
     fun addTodoItem(@RequestBody request: TodoRequest): String {
-        val PK = UUID.randomUUID().toString()
+        val id = UUID.randomUUID().toString()
         val item = mapOf(
-            "PK" to AttributeValue.fromS(PK),
+            "id" to AttributeValue.fromS(id),
             "text" to AttributeValue.fromS(request.text)
         )
         val putItemRequest = PutItemRequest.builder()
@@ -41,12 +41,11 @@ class TodoController(
             .item(item)
             .build()
         client.putItem(putItemRequest)
-        return PK
+        return id
     }
 
     @GetMapping("/todo")
     fun getAllTodoItems(): List<TodoItem> {
-
         val request = ScanRequest.builder()
             .tableName(tableName)
             .build()
@@ -54,7 +53,7 @@ class TodoController(
         val items: List<Map<String, AttributeValue>> = response.items().toList()
         val todoItems = items.map {
             TodoItem(
-                id = it["PK"]!!.s(),
+                id = it["id"]!!.s(),
                 text = it["text"]!!.s()
             )
         }
@@ -76,7 +75,7 @@ class TodoController(
     fun deleteTodoItem(@PathVariable id: String) {
         val deleteRequest = DeleteItemRequest.builder()
             .tableName(tableName)
-            .key(mapOf("PK" to AttributeValue.fromS(id))) // .key({ PK: item.PK })
+            .key(mapOf("id" to AttributeValue.fromS(id))) // .key({ id: item.id })
             .build()
         client.deleteItem(deleteRequest)
     }
