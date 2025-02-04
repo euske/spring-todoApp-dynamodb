@@ -50,7 +50,7 @@ class TodoappApplicationTests(
 		@Bean
 		fun dynamoDbClient(): DynamoDbClient {
 			val image = DockerImageName.parse("localstack/localstack:latest-amd64")
-			val initScript = MountableFile.forHostPath("../scripts/localstack")
+			val initScript = MountableFile.forHostPath("./localstack")
 			val localstack = LocalStackContainer(image)
 				.withCopyToContainer(initScript, "/etc/localstack/init/ready.d/")
 			localstack.start()
