@@ -3,8 +3,10 @@ package com.example.todoapp
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.not
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -16,6 +18,10 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.testcontainers.containers.localstack.LocalStackContainer
+import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.utility.DockerImageName
+import org.testcontainers.utility.MountableFile
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
@@ -23,7 +29,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest
-import java.net.URI
+
 
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -40,14 +46,19 @@ class TodoappApplicationTests(
 	class DynamoDbTestConfiguration(
 		@Value("\${aws.dynamodb.region}")
 		private val region: String,
-		@Value("\${aws.dynamodb.endpoint}")
-		private val endpoint: String,
 	) {
 		@Bean
 		fun dynamoDbClient(): DynamoDbClient {
-			val credentials = AwsBasicCredentials.create("xxx", "yyy")
+			val image = DockerImageName.parse("localstack/localstack:latest-amd64")
+			val initScript = MountableFile.forHostPath("../scripts/localstack")
+			val localstack = LocalStackContainer(image)
+				.withCopyToContainer(initScript, "/etc/localstack/init/ready.d/")
+			localstack.start()
+			val logger = LoggerFactory.getLogger("localstack")
+			localstack.followOutput(Slf4jLogConsumer(logger))
+			val credentials = AwsBasicCredentials.create(localstack.accessKey, localstack.secretKey)
 			return DynamoDbClient.builder()
-				.endpointOverride(URI.create(endpoint))
+				.endpointOverride(localstack.endpoint)
 				.region(Region.of(region))
 				.credentialsProvider(StaticCredentialsProvider.create(credentials))
 				.build()

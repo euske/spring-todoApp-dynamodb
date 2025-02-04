@@ -25,7 +25,10 @@ dependencies {
 	implementation("software.amazon.awssdk:dynamodb:2.30.2")
 	runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	testImplementation("org.testcontainers:junit-jupiter")
+	testImplementation("org.testcontainers:localstack")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
