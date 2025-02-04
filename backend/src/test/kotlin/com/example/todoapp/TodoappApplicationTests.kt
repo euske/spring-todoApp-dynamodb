@@ -177,7 +177,7 @@ class TodoappApplicationTests(
 		// setup
 		deleteAllItems(tableName)
 		val id1 = postTodo("foo")
-		val id2 = postTodo("bar")
+		postTodo("bar")
 
 		// action + check
 		mockMvc.perform(get("/todo/{id1}", id1))
