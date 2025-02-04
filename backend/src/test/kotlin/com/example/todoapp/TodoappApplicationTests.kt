@@ -68,19 +68,7 @@ class TodoappApplicationTests(
 	@Autowired
 	private lateinit var mockMvc: MockMvc
 
-	@Test
-	fun contextLoads() {
-	}
-
-	@Test
-	fun `todoエンドポイントにJSONをPOSTすると、200 OKが返る`() {
-		mockMvc.perform(post("/todo")
-			.contentType(MediaType.APPLICATION_JSON)
-			.content("{}"))
-			.andExpect(status().isOk)
-	}
-
-	fun scanAllItems(tableName: String): List<Map<String, AttributeValue>> {
+	private fun scanAllItems(tableName: String): List<Map<String, AttributeValue>> {
 		val request = ScanRequest.builder()
 			.tableName(tableName)
 			.build()
@@ -88,7 +76,7 @@ class TodoappApplicationTests(
 		return response.items().toList()
 	}
 
-	fun deleteAllItems(tableName: String) {
+	private fun deleteAllItems(tableName: String) {
 		val items = scanAllItems(tableName)
 		for (item in items) {
 			val deleteRequest = DeleteItemRequest.builder()
@@ -99,15 +87,27 @@ class TodoappApplicationTests(
 		}
 	}
 
-	fun postTodo(text: String): String {
+	private fun postTodo(text: String): String {
 		val result = mockMvc
 			.perform(
-				post("/todo")
+				post("/api/todo/")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content("{\"text\":\"$text\"}"))
 			.andReturn()
 		val id = result.response.contentAsString
 		return id
+	}
+
+	@Test
+	fun contextLoads() {
+	}
+
+	@Test
+	fun `todoエンドポイントにJSONをPOSTすると、200 OKが返る`() {
+		mockMvc.perform(post("/api/todo/")
+			.contentType(MediaType.APPLICATION_JSON)
+			.content("{}"))
+			.andExpect(status().isOk)
 	}
 
 	@Test
@@ -151,7 +151,7 @@ class TodoappApplicationTests(
 		postTodo("test123")
 
 		// action + check
-		mockMvc.perform(get("/todo"))
+		mockMvc.perform(get("/api/todo/"))
 			.andExpect(status().isOk)
 			.andExpect(jsonPath("$.length()").value(1))
 			.andExpect(jsonPath("$[0].text").value("test123"))
@@ -166,7 +166,7 @@ class TodoappApplicationTests(
 		val id = postTodo("foo")
 
 		// check
-		mockMvc.perform(get("/todo"))
+		mockMvc.perform(get("/api/todo/"))
 			.andExpect(status().isOk)
 			.andExpect(jsonPath("$.length()").value(1))
 			.andExpect(jsonPath("$[0].id").value(id))
@@ -180,7 +180,7 @@ class TodoappApplicationTests(
 		postTodo("bar")
 
 		// action + check
-		mockMvc.perform(get("/todo/{id1}", id1))
+		mockMvc.perform(get("/api/todo/{id1}", id1))
 			.andExpect(jsonPath("$.id").value(id1))
 			.andExpect(jsonPath("$.text").value("foo"))
 	}
@@ -191,7 +191,7 @@ class TodoappApplicationTests(
 		deleteAllItems(tableName)
 
 		// action + check
-		mockMvc.perform(get("/todo/{id1}", "1234"))
+		mockMvc.perform(get("/api/todo/{id1}", "1234"))
 			.andExpect(status().isNotFound)
 	}
 
@@ -203,11 +203,11 @@ class TodoappApplicationTests(
 		val id2 = postTodo("bar")
 
 		// action
-		mockMvc.perform(delete("/todo/{id1}", id1))
+		mockMvc.perform(delete("/api/todo/{id1}", id1))
 			.andExpect(status().isOk)
 
 		// check
-		val result = mockMvc.perform(get("/todo"))
+		val result = mockMvc.perform(get("/api/todo/"))
 			.andReturn()
 		val content = result.response.contentAsString
 		val mapper = ObjectMapper()

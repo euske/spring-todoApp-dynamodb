@@ -22,6 +22,7 @@ data class TodoItem(
 )
 
 @RestController
+@RequestMapping("/api/todo")
 class TodoController(
     @Autowired
     private val client: DynamoDbClient,
@@ -29,7 +30,7 @@ class TodoController(
     private val tableName: String,
 ) {
 
-    @PostMapping("/todo")
+    @PostMapping("/")
     fun addTodoItem(@RequestBody request: TodoRequest): String {
         val id = UUID.randomUUID().toString()
         val item = mapOf(
@@ -44,7 +45,7 @@ class TodoController(
         return id
     }
 
-    @GetMapping("/todo")
+    @GetMapping("/")
     fun getAllTodoItems(): List<TodoItem> {
         val request = ScanRequest.builder()
             .tableName(tableName)
@@ -60,7 +61,7 @@ class TodoController(
         return todoItems
     }
 
-    @GetMapping("/todo/{id}")
+    @GetMapping("/{id}")
     fun getTodoItem(@PathVariable id: String): ResponseEntity<TodoItem> {
         val todoItems = getAllTodoItems()
         val todoItem = todoItems.find { it.id == id }
@@ -71,7 +72,7 @@ class TodoController(
         }
     }
 
-    @DeleteMapping("/todo/{id}")
+    @DeleteMapping("/{id}")
     fun deleteTodoItem(@PathVariable id: String) {
         val deleteRequest = DeleteItemRequest.builder()
             .tableName(tableName)
