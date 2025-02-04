@@ -6,4 +6,4 @@ services:
     ports:
       - "4566:4566"
     volumes:
-      - ./scripts/localstack/:/etc/localstack/init/ready.d/
+      - ../scripts/localstack/:/etc/localstack/init/ready.d/
