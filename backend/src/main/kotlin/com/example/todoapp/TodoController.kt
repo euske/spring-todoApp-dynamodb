@@ -1,5 +1,6 @@
 package com.example.todoapp
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -29,6 +30,11 @@ class TodoController(
     @Value("\${aws.dynamodb.tableName}")
     private val tableName: String,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    init {
+        logger.info("TodoController: tableName=$tableName")
+    }
 
     @PostMapping("/")
     fun addTodoItem(@RequestBody request: TodoRequest): String {

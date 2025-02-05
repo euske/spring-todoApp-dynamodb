@@ -1,5 +1,6 @@
 package com.example.todoapp
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,8 +19,11 @@ class DynamoDbConfiguration(
     @Value("\${aws.dynamodb.endpoint}")
     private val endpoint: String,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @Bean
     fun dynamoDbClient(): DynamoDbClient {
+        logger.info("dynamoDbClient: region=$region, endpoint=$endpoint")
         val dummyCredentials = AwsBasicCredentials.create("xxx", "yyy")
         return DynamoDbClient.builder()
             .endpointOverride(URI.create(endpoint))
