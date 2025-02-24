@@ -42,3 +42,14 @@ kotlin {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+tasks.named<JavaExec>("bootRun") {
+	setIgnoreExitValue(true)
+	doLast {
+		if (executionResult.get().exitValue == 128+15) { // SIGTERM
+			logger.lifecycle("Task terminated by SIGTERM.")
+		} else {
+			executionResult.get().assertNormalExitValue()
+		}
+	}
+}
