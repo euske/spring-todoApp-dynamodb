@@ -1,19 +1,41 @@
-import { useState } from 'react'
+import {useEffect, useState} from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+type TodoItem = {
+  id: string,
+  text: string,
+}
+
 function App() {
   const [count, setCount] = useState(0)
-
+  const [items, setItems] = useState<TodoItem[]>([])
+  useEffect(() => {
+    fetch('/api/todo/').then(
+      (response) => response.json().then(
+        (items: TodoItem[]) => setItems(items)
+      )
+    )
+  })
+  
+  return <>
+    <div>TODO</div>
+    <ul>
+      {items.map((item) => (
+        <li key={item.id}>{item.text}</li>
+      ))}
+    </ul>
+  </>
+  
   return (
     <>
       <div>
         <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
+          <img src={viteLogo} className="logo" alt="Vite logo"/>
         </a>
         <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
+          <img src={reactLogo} className="logo react" alt="React logo"/>
         </a>
       </div>
       <h1>Vite + React</h1>
