@@ -13,7 +13,7 @@ function App() {
         (items: TodoItem[]) => setItems(items)
       )
     )
-  })
+  }, [])
   
   return <>
     <div>TODO</div>
