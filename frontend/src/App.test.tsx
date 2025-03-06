@@ -1,6 +1,7 @@
 import {render, screen, waitFor} from "@testing-library/react";
 import App from "./App.tsx";
 import {beforeEach, expect} from "vitest";
+import {userEvent} from "@testing-library/user-event";
 
 describe("app", () => {
 
@@ -17,13 +18,13 @@ describe("app", () => {
         global.fetch = vi.fn().mockResolvedValue(response)
     })
     
-    test("renders", async () => {
+    test("shows title", async () => {
         render(<App/>)
 
         expect(await screen.findByText("TODO")).toBeInTheDocument()
     })
 
-    test("send request", async () => {
+    test("shows items", async () => {
         render(<App/>)
 
         await waitFor(() => {
@@ -31,5 +32,45 @@ describe("app", () => {
         })
         expect(screen.getByText(todoItems[0].text)).toBeInTheDocument()
         expect(screen.getByText(todoItems[1].text)).toBeInTheDocument()
+    })
+    
+    test("shows the form", async () => {
+        render(<App/>)
+        
+        expect(await screen.findByRole("textbox")).toBeInTheDocument()
+        expect(await screen.findByRole("button")).toBeInTheDocument()
+    })
+    
+    test("when submitting the form, it sends a request", async () => {
+        const todoText = "todo 123"
+        render(<App/>)
+        
+        await userEvent.type(screen.getByRole("textbox"), todoText)
+        await userEvent.click(screen.getByRole("button"))
+        
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+              '/api/todo/', {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ text: todoText })
+              })
+        })
+    })
+    
+    test("when submitting the form, it fetches the items again", async () => {
+        const todoText = "todo 123"
+        render(<App/>)
+        
+        const response = {
+            ok: true,
+            json: () => Promise.resolve([ {id: 'new', text: todoText} ])
+        }
+        global.fetch = vi.fn().mockResolvedValue(response)
+        
+        await userEvent.type(screen.getByRole("textbox"), todoText)
+        await userEvent.click(screen.getByRole("button"))
+        
+        expect(await screen.findByText(todoText)).toBeInTheDocument()
     })
 })
