@@ -1,76 +1,74 @@
-import {render, screen, waitFor} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import App from "./App.tsx";
-import {beforeEach, expect} from "vitest";
-import {userEvent} from "@testing-library/user-event";
+import { beforeEach, expect } from "vitest";
+import { userEvent } from "@testing-library/user-event";
 
 describe("app", () => {
+	const todoItems = [
+		{ id: "id123", text: "text123" },
+		{ id: "id456", text: "text456" },
+	];
 
-    const todoItems = [
-        {id:'id123', text:'text123'},
-        {id:'id456', text:'text456'},
-    ]
+	beforeEach(() => {
+		const response = {
+			ok: true,
+			json: () => Promise.resolve(todoItems),
+		};
+		global.fetch = vi.fn().mockResolvedValue(response);
+	});
 
-    beforeEach(() => {
-        const response = {
-            ok: true,
-            json: () => Promise.resolve(todoItems)
-        }
-        global.fetch = vi.fn().mockResolvedValue(response)
-    })
-    
-    test("shows title", async () => {
-        render(<App/>)
+	test("shows title", async () => {
+		render(<App />);
 
-        expect(await screen.findByText("TODO")).toBeInTheDocument()
-    })
+		expect(await screen.findByText("TODO")).toBeInTheDocument();
+	});
 
-    test("shows items", async () => {
-        render(<App/>)
+	test("shows items", async () => {
+		render(<App />);
 
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith('/api/todo/')
-        })
-        expect(screen.getByText(todoItems[0].text)).toBeInTheDocument()
-        expect(screen.getByText(todoItems[1].text)).toBeInTheDocument()
-    })
-    
-    test("shows the form", async () => {
-        render(<App/>)
-        
-        expect(await screen.findByRole("textbox")).toBeInTheDocument()
-        expect(await screen.findByRole("button")).toBeInTheDocument()
-    })
-    
-    test("when submitting the form, it sends a request", async () => {
-        const todoText = "todo 123"
-        render(<App/>)
-        
-        await userEvent.type(screen.getByRole("textbox"), todoText)
-        await userEvent.click(screen.getByRole("button"))
-        
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-              '/api/todo/', {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ text: todoText })
-              })
-        })
-    })
-    
-    test("when submitting the form, it fetches the items again", async () => {
-        const todoText = "todo 123"
-        render(<App/>)
-        
-        const response = {
-            ok: true,
-            json: () => Promise.resolve([ {id: 'new', text: todoText} ])
-        }
-        global.fetch = vi.fn().mockResolvedValue(response)
-        
-        await userEvent.type(screen.getByRole("textbox"), todoText)
-        await userEvent.click(screen.getByRole("button"))
-        
-        expect(await screen.findByText(todoText)).toBeInTheDocument()
-    })
-})
+		await waitFor(() => {
+			expect(global.fetch).toHaveBeenCalledWith("/api/todo/");
+		});
+		expect(screen.getByText(todoItems[0].text)).toBeInTheDocument();
+		expect(screen.getByText(todoItems[1].text)).toBeInTheDocument();
+	});
+
+	test("shows the form", async () => {
+		render(<App />);
+
+		expect(await screen.findByRole("textbox")).toBeInTheDocument();
+		expect(await screen.findByRole("button")).toBeInTheDocument();
+	});
+
+	test("when submitting the form, it sends a request", async () => {
+		const todoText = "todo 123";
+		render(<App />);
+
+		await userEvent.type(screen.getByRole("textbox"), todoText);
+		await userEvent.click(screen.getByRole("button"));
+
+		await waitFor(() => {
+			expect(global.fetch).toHaveBeenCalledWith("/api/todo/", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ text: todoText }),
+			});
+		});
+	});
+
+	test("when submitting the form, it fetches the items again", async () => {
+		const todoText = "todo 123";
+		render(<App />);
+
+		const response = {
+			ok: true,
+			json: () => Promise.resolve([{ id: "new", text: todoText }]),
+		};
+		global.fetch = vi.fn().mockResolvedValue(response);
+
+		await userEvent.type(screen.getByRole("textbox"), todoText);
+		await userEvent.click(screen.getByRole("button"));
+
+		expect(await screen.findByText(todoText)).toBeInTheDocument();
+	});
+});
