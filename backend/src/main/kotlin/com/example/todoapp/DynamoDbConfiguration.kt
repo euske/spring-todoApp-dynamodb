@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
@@ -22,18 +24,25 @@ class DynamoDbConfiguration(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Bean
-    fun dynamoDbClient(): DynamoDbClient {
+    fun dummyCredentials(): AwsCredentials {
+        return AwsBasicCredentials.create("xxx", "yyy")
+    }
+
+    @Bean
+    fun credentialsProvider(dummyCredentials: AwsCredentials): AwsCredentialsProviderChain {
+        return AwsCredentialsProviderChain.of(
+            DefaultCredentialsProvider.create(),
+            StaticCredentialsProvider.create(dummyCredentials),
+        )
+    }
+
+    @Bean
+    fun dynamoDbClient(credentialsProvider: AwsCredentialsProvider): DynamoDbClient {
         logger.info("dynamoDbClient: region=$region, endpoint=$endpoint")
-        val dummyCredentials = AwsBasicCredentials.create("xxx", "yyy")
         return DynamoDbClient.builder()
             .endpointOverride(URI.create(endpoint))
             .region(Region.of(region))
-            .credentialsProvider(
-                AwsCredentialsProviderChain.of(
-                    DefaultCredentialsProvider.create(),
-                    StaticCredentialsProvider.create(dummyCredentials),
-                )
-            )
+            .credentialsProvider(credentialsProvider)
             .build()
     }
 }
