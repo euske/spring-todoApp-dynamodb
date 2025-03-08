@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import App from "./App.tsx";
-import { beforeEach, expect } from "vitest";
 import { userEvent } from "@testing-library/user-event";
+import { beforeEach, expect } from "vitest";
+import App from "./App.tsx";
 
 describe("app", () => {
 	const todoItems = [
