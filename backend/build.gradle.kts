@@ -20,6 +20,8 @@ repositories {
     mavenCentral()
 }
 
+val mockitoAgent = configurations.create("mockitoAgent")
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -33,6 +35,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:localstack")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    mockitoAgent("org.mockito:mockito-core") { isTransitive = false }
 }
 
 kotlin {
@@ -57,6 +60,7 @@ tasks.named<JavaExec>("bootRun") {
 }
 
 tasks.test {
+    jvmArgs("-javaagent:${mockitoAgent.asPath}")
     finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
 }
 
