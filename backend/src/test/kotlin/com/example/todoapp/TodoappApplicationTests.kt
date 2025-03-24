@@ -95,7 +95,7 @@ class TodoappApplicationTests(
         val result =
             mockMvc
                 .perform(
-                    post("/api/todo/")
+                    post("/api/todo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"text\":\"$text\"}"),
                 )
@@ -111,7 +111,7 @@ class TodoappApplicationTests(
     @Test
     fun `todoエンドポイントにJSONをPOSTすると、200 OKが返る`() {
         mockMvc.perform(
-            post("/api/todo/")
+            post("/api/todo")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"),
         )
@@ -159,7 +159,7 @@ class TodoappApplicationTests(
         postTodo("test123")
 
         // action + check
-        mockMvc.perform(get("/api/todo/"))
+        mockMvc.perform(get("/api/todo"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].text").value("test123"))
@@ -174,7 +174,7 @@ class TodoappApplicationTests(
         val id = postTodo("foo")
 
         // check
-        mockMvc.perform(get("/api/todo/"))
+        mockMvc.perform(get("/api/todo"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].id").value(id))
@@ -216,7 +216,7 @@ class TodoappApplicationTests(
 
         // check
         val result =
-            mockMvc.perform(get("/api/todo/"))
+            mockMvc.perform(get("/api/todo"))
                 .andReturn()
         val content = result.response.contentAsString
         val mapper = ObjectMapper()

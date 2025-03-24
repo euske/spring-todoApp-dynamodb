@@ -27,7 +27,7 @@ describe("app", () => {
 		render(<App />);
 
 		await waitFor(() => {
-			expect(global.fetch).toHaveBeenCalledWith("/api/todo/");
+			expect(global.fetch).toHaveBeenCalledWith("/api/todo");
 		});
 		expect(screen.getByText(todoItems[0].text)).toBeInTheDocument();
 		expect(screen.getByText(todoItems[1].text)).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe("app", () => {
 		await userEvent.click(screen.getByRole("button"));
 
 		await waitFor(() => {
-			expect(global.fetch).toHaveBeenCalledWith("/api/todo/", {
+			expect(global.fetch).toHaveBeenCalledWith("/api/todo", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ text: todoText }),

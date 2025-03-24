@@ -21,7 +21,7 @@ class TodoController(
     @Autowired
     private val todoService: TodoService,
 ) {
-    @PostMapping("/")
+    @PostMapping
     fun addTodoItem(
         @RequestBody request: TodoRequest,
     ): String {
@@ -29,7 +29,7 @@ class TodoController(
         return id
     }
 
-    @GetMapping("/")
+    @GetMapping
     fun getAllTodoItems(): List<TodoItem> {
         val todoItems = todoService.getAllTodoItems()
         return todoItems

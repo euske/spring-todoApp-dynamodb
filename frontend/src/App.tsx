@@ -10,14 +10,14 @@ function App() {
 	const [text, setText] = useState("");
 
 	const updateItems = useCallback(async () => {
-		const response = await fetch("/api/todo/");
+		const response = await fetch("/api/todo");
 		const items: TodoItem[] = await response.json();
 		setTodoItems(items);
 	}, []);
 
 	const addItem = useCallback(
 		async (text: string) => {
-			await fetch("/api/todo/", {
+			await fetch("/api/todo", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ text }),
