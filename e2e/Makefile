@@ -11,5 +11,5 @@ test:
 	$(NPM) run test
 
 clean:
-	-$(RM) -r playwright-report
-	-$(RM) -r test-results
+	-$(RM) -r ./playwright-report
+	-$(RM) -r ./test-results

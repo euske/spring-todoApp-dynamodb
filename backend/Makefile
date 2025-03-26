@@ -1,6 +1,6 @@
 # Makefile
 
-.PHONY: all image run clean
+.PHONY: all image run test clean
 
 GRADLE=./gradlew
 DOCKER=docker
@@ -14,6 +14,9 @@ image: $(JAR)
 
 run:
 	$(DOCKER) run -p8080:8080 $(TAG)
+
+test:
+	$(GRADLE) test
 
 clean:
 	-$(DOCKER) image rm $(TAG)
