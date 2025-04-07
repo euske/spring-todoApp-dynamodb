@@ -48,7 +48,7 @@ describe("handler", () => {
             "requestContext": {
                 "http": {
                     "method": "POST",
-                    "path": "/todo",
+                    "path": "/api/todo",
                 }
             },
             "body": JSON.stringify(request)
@@ -64,7 +64,7 @@ describe("handler", () => {
             "requestContext": {
                 "http": {
                     "method": "POST",
-                    "path": "/todo",
+                    "path": "/api/todo",
                 }
             },
             "body": "{}"
@@ -104,7 +104,7 @@ describe("handler", () => {
             "requestContext": {
                 "http": {
                     "method": "GET",
-                    "path": "/todo",
+                    "path": "/api/todo",
                 }
             },
         } as LambdaFunctionURLEvent
@@ -138,7 +138,7 @@ describe("handler", () => {
             "requestContext": {
                 "http": {
                     "method": "GET",
-                    "path": `/todo/${id1}`,
+                    "path": `/api/todo/${id1}`,
                 }
             },
         } as LambdaFunctionURLEvent
@@ -157,7 +157,7 @@ describe("handler", () => {
             "requestContext": {
                 "http": {
                     "method": "GET",
-                    "path": `/todo/1234`,
+                    "path": `/api/todo/1234`,
                 }
             },
         } as LambdaFunctionURLEvent
@@ -176,7 +176,7 @@ describe("handler", () => {
             "requestContext": {
                 "http": {
                     "method": "DELETE",
-                    "path": `/todo/${id2}`,
+                    "path": `/api/todo/${id2}`,
                 }
             },
         } as LambdaFunctionURLEvent

@@ -17,9 +17,8 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
     const http = event.requestContext.http
     const method = http.method
     const path = http.path
-    const components = path.split("/")
 
-    if (method === "POST") {
+    if (method === "POST" && path === "/api/todo") {
         const request = JSON.parse(event.body || "{}")
         const id = crypto.randomUUID()
         const command = new PutCommand({
@@ -35,8 +34,8 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
             body: id
         }
 
-    } else if (method === "DELETE" && 3 <= components.length) {
-        const id = components[2]
+    } else if (method === "DELETE" && path.startsWith("/api/todo/")) {
+        const id = path.split("/")[3]
         const command = new DeleteCommand({
             TableName: tableName,
             Key: {
@@ -49,8 +48,8 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
             body: id
         }
 
-    } else if (method === "GET" && 3 <= components.length) {
-        const id = components[2]
+    } else if (method === "GET" && path.startsWith("/api/todo/")) {
+        const id = path.split("/")[3]
         const command = new GetCommand({
             TableName: tableName,
             Key: {
@@ -74,7 +73,7 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
             }
         }
 
-    } else if (method === "GET") {
+    } else if (method === "GET" && path === "/api/todo") {
         const command = new ScanCommand({
             TableName: tableName,
         })
