@@ -14,7 +14,12 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
     const client = new DynamoDBClient(options);
     const docClient = DynamoDBDocumentClient.from(client);
 
-    if (event.requestContext.http.method === "POST") {
+    const http = event.requestContext.http
+    const method = http.method
+    const path = http.path
+    const components = path.split("/")
+
+    if (method === "POST") {
         const request = JSON.parse(event.body || "{}")
         const id = crypto.randomUUID()
         const command = new PutCommand({
@@ -29,12 +34,9 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
             statusCode: 200,
             body: id
         }
-    }
 
-    if (event.requestContext.http.method === "DELETE") {
-        const path = event.requestContext.http.path
-        const args = path.split("/")
-        const id = args[2]
+    } else if (method === "DELETE" && 3 <= components.length) {
+        const id = components[2]
         const command = new DeleteCommand({
             TableName: tableName,
             Key: {
@@ -46,24 +48,9 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
             statusCode: 200,
             body: id
         }
-    }
 
-    const path = event.requestContext.http.path
-    const args = path.split("/")
-    if (args.length < 3) {
-        const command = new ScanCommand({
-            TableName: tableName,
-        })
-        const response = await docClient.send(command)
-        return {
-            statusCode: 200,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(response.Items)
-        }
-    } else {
-        const id = args[2]
+    } else if (method === "GET" && 3 <= components.length) {
+        const id = components[2]
         const command = new GetCommand({
             TableName: tableName,
             Key: {
@@ -85,6 +72,25 @@ export const handler = async (event: LambdaFunctionURLEvent, context: Context, c
                 },
                 body: JSON.stringify(response.Item)
             }
+        }
+
+    } else if (method === "GET") {
+        const command = new ScanCommand({
+            TableName: tableName,
+        })
+        const response = await docClient.send(command)
+        return {
+            statusCode: 200,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(response.Items)
+        }
+
+    } else {
+        return {
+            statusCode: 400,
+            body: "bad request"
         }
     }
 }
