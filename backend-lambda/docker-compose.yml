@@ -7,3 +7,4 @@ services:
       - "4566:4566"
     volumes:
       - ./localstack/:/etc/localstack/init/ready.d/
+      - /var/run/docker.sock:/var/run/docker.sock
