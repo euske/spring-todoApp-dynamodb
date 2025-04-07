@@ -5,6 +5,8 @@ services:
     image: localstack/localstack
     ports:
       - "4566:4566"
+    environment:
+      DISABLE_CORS_CHECKS: 1
     volumes:
       - ./localstack/:/etc/localstack/init/ready.d/
       - /var/run/docker.sock:/var/run/docker.sock
