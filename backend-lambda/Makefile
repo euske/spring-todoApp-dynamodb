@@ -26,8 +26,8 @@ clean:
 test:
 	$(NPM) run test
 
-invoke: url.txt
-	$(CURL) `cat url.txt`
+invoke:
+	AWSCLI="$(AWSCLI)" REGION="$(REGION)" $(CURL) $$(./get_function_url.sh $(FUNCTION_NAME))
 
 tail:
 	$(AWSCLI) logs tail --region $(REGION) --since $(SINCE) /aws/lambda/$(FUNCTION_NAME)
