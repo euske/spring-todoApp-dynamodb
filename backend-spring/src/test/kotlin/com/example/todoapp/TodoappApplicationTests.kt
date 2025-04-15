@@ -33,7 +33,6 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest
 
 @SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = ["spring.main.allow-bean-definition-overriding=true"],
 )
 @AutoConfigureMockMvc
@@ -50,7 +49,7 @@ class TodoappApplicationTests(
     ) {
         @Bean
         fun dynamoDbClient(): DynamoDbClient {
-            val image = DockerImageName.parse("localstack/localstack:latest-amd64")
+            val image = DockerImageName.parse("localstack/localstack")
             val initScript = MountableFile.forHostPath("./localstack")
             val localstack =
                 LocalStackContainer(image)
@@ -98,7 +97,7 @@ class TodoappApplicationTests(
                     post("/api/todo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"text\":\"$text\"}"),
-                )
+                    )
                 .andReturn()
         val id = result.response.contentAsString
         return id
@@ -114,7 +113,7 @@ class TodoappApplicationTests(
             post("/api/todo")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"),
-        )
+            )
             .andExpect(status().isOk)
     }
 
