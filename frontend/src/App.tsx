@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-type TodoItem = {
+export type TodoItem = {
 	id: string;
 	text: string;
 };
@@ -27,8 +27,18 @@ function App() {
 		[updateItems],
 	);
 
+	const deleteItem = useCallback(
+		async (id: string) => {
+			await fetch(`/api/todo/${id}`, {
+				method: "DELETE",
+			});
+			await updateItems();
+		},
+		[updateItems],
+	);
+
 	useEffect(() => {
-		updateItems();
+		void updateItems();
 	}, [updateItems]);
 
 	return (
@@ -40,13 +50,18 @@ function App() {
 					value={text}
 					onChange={(e) => setText(e.target.value)}
 				/>
-				<button type={"button"} onClick={() => addItem(text)}>
+				<button type="button" onClick={() => addItem(text)}>
 					Add
 				</button>
 			</div>
 			<ul>
 				{todoItems.map((item) => (
-					<li key={item.id}>{item.text}</li>
+					<li key={item.id}>
+						{item.text}
+						<button type="button" onClick={() => deleteItem(item.id)}>
+							Delete
+						</button>
+					</li>
 				))}
 			</ul>
 		</>
