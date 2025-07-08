@@ -15,7 +15,7 @@ DynamoDB (Localstack) を使ったTODOアプリのサンプル。
 ## How to Run
 
 ```shell
-$ cd ./backend
+$ cd ./backend-spring
 $ ./gradlew bootRun
 ```
 
