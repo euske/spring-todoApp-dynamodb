@@ -3,7 +3,7 @@ import { userEvent } from "@testing-library/user-event";
 import { beforeEach, expect } from "vitest";
 import App from "./App.tsx";
 
-describe("app", () => {
+describe("App", () => {
 	const todoItems = [
 		{ id: "id123", text: "text123" },
 		{ id: "id456", text: "text456" },
@@ -17,13 +17,13 @@ describe("app", () => {
 		global.fetch = vi.fn().mockResolvedValue(response);
 	});
 
-	test("shows title", async () => {
+	test("タイトルを表示する。", async () => {
 		render(<App />);
 
 		expect(await screen.findByText("TODO")).toBeInTheDocument();
 	});
 
-	test("shows items", async () => {
+	test("バックエンドを呼び、返された全項目を表示する。", async () => {
 		render(<App />);
 
 		await waitFor(() => {
@@ -33,14 +33,14 @@ describe("app", () => {
 		expect(screen.getByText(todoItems[1].text)).toBeInTheDocument();
 	});
 
-	test("shows the form", async () => {
+	test("入力フォームを表示する。", async () => {
 		render(<App />);
 
 		expect(await screen.findByRole("textbox")).toBeInTheDocument();
 		expect(await screen.findByRole("button")).toBeInTheDocument();
 	});
 
-	test("when submitting the form, it sends a request", async () => {
+	test("新しい項目を入力すると、リクエストを送る。", async () => {
 		const todoText = "todo 123";
 		render(<App />);
 
@@ -56,7 +56,7 @@ describe("app", () => {
 		});
 	});
 
-	test("when submitting the form, it fetches the items again", async () => {
+	test("新しい項目を入力すると、バックエンドから再度項目を取得する。", async () => {
 		const todoText = "todo 123";
 		render(<App />);
 
