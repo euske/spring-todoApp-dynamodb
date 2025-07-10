@@ -1,22 +1,25 @@
 # Makefile
 
-.PHONY: all image run test clean
+.PHONY: all buildImage runImage test run clean
 
 GRADLE=./gradlew
 DOCKER=docker
 TAG=todo:latest
 JAR=build/libs/todoapp-0.0.1-SNAPSHOT.jar
 
-all: image
+all:
 
-image: $(JAR)
+buildImage: $(JAR)
 	$(DOCKER) build -t $(TAG) .
 
-run:
+runImage:
 	$(DOCKER) run -p8080:8080 $(TAG)
 
 test:
-	$(GRADLE) test
+	$(GRADLE) clean test
+
+run:
+	$(GRADLE) bootRun
 
 clean:
 	-$(DOCKER) image rm $(TAG)

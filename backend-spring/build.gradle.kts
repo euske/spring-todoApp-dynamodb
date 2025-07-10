@@ -1,3 +1,6 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+import java.io.IOException
+
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
@@ -55,6 +58,20 @@ tasks.named<JavaExec>("bootRun") {
             logger.lifecycle("Task terminated by SIGTERM.")
         } else {
             executionResult.get().assertNormalExitValue()
+        }
+    }
+}
+
+tasks.withType<BootRun> {
+    doFirst {
+        try {
+            file(".env").readLines().forEach {
+                if (it.contains('=')) {
+                    val (key, value) = it.split('=')
+                    environment(key, value)
+                }
+            }
+        } catch (e: IOException) {
         }
     }
 }
