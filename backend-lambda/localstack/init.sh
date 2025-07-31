@@ -4,6 +4,7 @@ AWSCLI=${AWSCLI:-awslocal}
 REGION=${REGION:-ap-northeast-1}
 
 TABLE_NAME=todo
+ENVIRONMENTS='Variables={DYNAMODB_TABLE_NAME=todo}'
 FUNCTION_NAME=todo-lambda
 HANDLER_NAME=index.handler
 
@@ -32,6 +33,7 @@ $AWSCLI lambda create-function \
   --runtime nodejs20.x \
   --role arn:aws:iam::000000000000:role/lambda-execution \
   --zip-file fileb://empty.zip \
+  --environment "$ENVIRONMENTS" \
   --handler $HANDLER_NAME
 
 $AWSCLI lambda create-function-url-config \

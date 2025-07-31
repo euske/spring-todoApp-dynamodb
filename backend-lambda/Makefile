@@ -11,11 +11,11 @@ REGION=ap-northeast-1
 FUNCTION_NAME=todo-lambda
 SINCE=1h
 
-.PHONY: all update build test lint clean invoke tail
+.PHONY: all deploy build test lint clean invoke tail
 
 all:
 
-update: clean dist/index.zip
+deploy: clean dist/index.zip
 	$(AWSCLI) --no-cli-pager lambda update-function-code --region $(REGION) --function-name $(FUNCTION_NAME) --zip-file fileb://dist/index.zip
 
 dist/index.zip: build
