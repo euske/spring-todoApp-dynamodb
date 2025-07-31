@@ -1,41 +1,22 @@
 # Makefile
 
-ZIP=zip
-RM=rm -f
-MKDIR=mkdir
-NPM=npm
-CURL=curl
 AWSCLI=awslocal
 AWS_REGION=ap-northeast-1
 
-FUNCTION_NAME=todo-lambda
-SINCE=1h
+DIRS=todo
 
-.PHONY: all deploy build test lint clean invoke tail
+.PHONY: all deploy test lint clean
 
 all:
 
-deploy: clean dist/index.zip
-	$(AWSCLI) --no-cli-pager lambda update-function-code --region $(AWS_REGION) --function-name $(FUNCTION_NAME) --zip-file fileb://dist/index.zip
-
-dist/index.zip: build
-	-$(MKDIR) dist
-	cd dist && $(ZIP) -r index.zip index.js*
-
-build:
-	$(NPM) run build
+deploy:
+	for dir in $(DIRS); do cd $$dir && AWSCLI="$(AWSCLI)" AWS_REGION="$(AWS_REGION)" $(MAKE) deploy; done
 
 test:
-	$(NPM) run test
+	for dir in $(DIRS); do cd $$dir && AWSCLI="$(AWSCLI)" AWS_REGION="$(AWS_REGION)" $(MAKE) test; done
 
 lint:
-	$(NPM) run lint
+	for dir in $(DIRS); do cd $$dir && AWSCLI="$(AWSCLI)" AWS_REGION="$(AWS_REGION)" $(MAKE) lint; done
 
 clean:
-	-$(RM) -r dist
-
-invoke:
-	AWSCLI="$(AWSCLI)" AWS_REGION="$(AWS_REGION)" ./invoke.sh $(FUNCTION_NAME)
-
-tail:
-	$(AWSCLI) --no-cli-pager logs tail --region $(AWS_REGION) --since $(SINCE) /aws/lambda/$(FUNCTION_NAME)
+	for dir in $(DIRS); do cd $$dir && AWSCLI="$(AWSCLI)" AWS_REGION="$(AWS_REGION)" $(MAKE) clean; done

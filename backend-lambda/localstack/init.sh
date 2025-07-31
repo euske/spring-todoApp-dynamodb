@@ -5,8 +5,8 @@ export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-ap-northeast-1}
 
 TABLE_NAME=todo
 ENVIRONMENTS='Variables={DYNAMODB_TABLE_NAME=todo}'
-FUNCTION_NAME=todo-lambda
 HANDLER_NAME=index.handler
+FUNCTION_NAMES=todo-lambda
 
 $AWSCLI iam create-role \
   --role-name lambda-execution \
@@ -26,14 +26,17 @@ $AWSCLI dynamodb create-table \
 
 mkdir /tmp/empty
 zip empty.zip /tmp/empty
-$AWSCLI lambda create-function \
-  --function-name $FUNCTION_NAME \
-  --runtime nodejs20.x \
-  --role arn:aws:iam::000000000000:role/lambda-execution \
-  --zip-file fileb://empty.zip \
-  --environment "$ENVIRONMENTS" \
-  --handler $HANDLER_NAME
 
-$AWSCLI lambda create-function-url-config \
-  --function-name $FUNCTION_NAME \
-  --auth-type NONE
+for function_name in $FUNCTION_NAMES; do
+  $AWSCLI lambda create-function \
+    --function-name "$function_name" \
+    --runtime nodejs20.x \
+    --role arn:aws:iam::000000000000:role/lambda-execution \
+    --zip-file fileb://empty.zip \
+    --environment "$ENVIRONMENTS" \
+    --handler $HANDLER_NAME
+
+  $AWSCLI lambda create-function-url-config \
+    --function-name "$function_name" \
+    --auth-type NONE
+done
