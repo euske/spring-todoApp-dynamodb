@@ -10,12 +10,11 @@ import {
 import { Context, LambdaFunctionURLEvent } from "aws-lambda";
 
 describe("handler", () => {
-  const region = "ap-northeast-1";
   const tableName = "todo";
   const config: Config = {
     dynamoDBClientConfig: {
       endpoint: "http://localhost:4566",
-      region: region,
+      region: "ap-northeast-1",
       credentials: {
         accessKeyId: "xxx",
         secretAccessKey: "yyy",

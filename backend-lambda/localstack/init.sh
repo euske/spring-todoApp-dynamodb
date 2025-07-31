@@ -1,21 +1,12 @@
 #!/bin/bash
 set -x
-AWSCLI=${AWSCLI:-awslocal}
-REGION=${REGION:-ap-northeast-1}
+export AWSCLI=${AWSCLI:-awslocal}
+export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-ap-northeast-1}
 
 TABLE_NAME=todo
 ENVIRONMENTS='Variables={DYNAMODB_TABLE_NAME=todo}'
 FUNCTION_NAME=todo-lambda
 HANDLER_NAME=index.handler
-
-$AWSCLI dynamodb create-table \
-  --region $REGION \
-  --billing-mode PAY_PER_REQUEST \
-  --table-name $TABLE_NAME \
-  --attribute-definitions \
-    AttributeName=id,AttributeType=S \
-  --key-schema \
-    AttributeName=id,KeyType=HASH
 
 $AWSCLI iam create-role \
   --role-name lambda-execution \
@@ -25,10 +16,17 @@ $AWSCLI iam attach-role-policy \
   --role-name lambda-execution \
   --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 
+$AWSCLI dynamodb create-table \
+  --billing-mode PAY_PER_REQUEST \
+  --table-name $TABLE_NAME \
+  --attribute-definitions \
+    AttributeName=id,AttributeType=S \
+  --key-schema \
+    AttributeName=id,KeyType=HASH
+
 mkdir /tmp/empty
 zip empty.zip /tmp/empty
 $AWSCLI lambda create-function \
-  --region $REGION \
   --function-name $FUNCTION_NAME \
   --runtime nodejs20.x \
   --role arn:aws:iam::000000000000:role/lambda-execution \
@@ -37,6 +35,5 @@ $AWSCLI lambda create-function \
   --handler $HANDLER_NAME
 
 $AWSCLI lambda create-function-url-config \
-  --region $REGION \
   --function-name $FUNCTION_NAME \
   --auth-type NONE
