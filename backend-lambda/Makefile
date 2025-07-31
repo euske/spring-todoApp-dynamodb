@@ -2,35 +2,40 @@
 
 ZIP=zip
 RM=rm -f
+MKDIR=mkdir
 NPM=npm
 CURL=curl
-AWSCLI=awslocal --no-cli-pager
-REGION=ap-northeast-1
-SINCE=1h
-FUNCTION_NAME=todo-lambda
+AWSCLI=awslocal
 
-.PHONY: all update clean test invoke tail
+REGION=ap-northeast-1
+FUNCTION_NAME=todo-lambda
+SINCE=1h
+
+.PHONY: all update build test lint clean invoke tail
 
 all:
 
-update:
-	$(NPM) run prebuild
-	$(NPM) run build
-	$(NPM) run postbuild
-	$(AWSCLI) lambda update-function-code --region $(REGION) --function-name $(FUNCTION_NAME) --zip-file fileb://dist/index.zip
+update: clean dist/index.zip
+	$(AWSCLI) --no-cli-pager lambda update-function-code --region $(REGION) --function-name $(FUNCTION_NAME) --zip-file fileb://dist/index.zip
 
-clean:
-	-$(RM) -r dist
-	-$(RM) url.txt
+dist/index.zip: build
+	-$(MKDIR) dist
+	cd dist && $(ZIP) -r index.zip index.js*
+
+build:
+	$(NPM) run build
 
 test:
 	$(NPM) run test
 
+lint:
+	$(NPM) run lint
+
+clean:
+	-$(RM) -r dist
+
 invoke:
-	AWSCLI="$(AWSCLI)" REGION="$(REGION)" $(CURL) $$(./get_function_url.sh $(FUNCTION_NAME))
+	AWSCLI="$(AWSCLI)" REGION="$(REGION)" ./invoke.sh $(FUNCTION_NAME)
 
 tail:
-	$(AWSCLI) logs tail --region $(REGION) --since $(SINCE) /aws/lambda/$(FUNCTION_NAME)
-
-url.txt:
-	AWSCLI="$(AWSCLI)" REGION="$(REGION)" ./get_function_url.sh $(FUNCTION_NAME) > url.txt
+	$(AWSCLI) --no-cli-pager logs tail --region $(REGION) --since $(SINCE) /aws/lambda/$(FUNCTION_NAME)

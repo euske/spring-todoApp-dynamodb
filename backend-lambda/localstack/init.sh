@@ -25,13 +25,13 @@ $AWSCLI iam attach-role-policy \
   --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 
 mkdir /tmp/empty
-zip src.zip /tmp/empty
+zip empty.zip /tmp/empty
 $AWSCLI lambda create-function \
   --region $REGION \
   --function-name $FUNCTION_NAME \
   --runtime nodejs20.x \
   --role arn:aws:iam::000000000000:role/lambda-execution \
-  --zip-file fileb://src.zip \
+  --zip-file fileb://empty.zip \
   --handler $HANDLER_NAME
 
 $AWSCLI lambda create-function-url-config \
