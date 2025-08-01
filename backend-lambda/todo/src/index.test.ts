@@ -2,9 +2,8 @@ import { vi, describe, it, expect } from "vitest";
 import { Config, handler, TodoItem } from "./index";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  DeleteCommand,
   DynamoDBDocumentClient,
-  PutCommand,
+  DeleteCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { Context, LambdaFunctionURLEvent } from "aws-lambda";
@@ -46,7 +45,7 @@ describe("handler", () => {
     }
   };
 
-  const postTodo = async (tableName: string, text: string): Promise<string> => {
+  const postTodo = async (text: string): Promise<string> => {
     const request = {
       text: text,
     };
@@ -85,7 +84,7 @@ describe("handler", () => {
     await deleteAllItems(tableName);
     const randomText = `foo${Math.random()}`;
 
-    await postTodo(tableName, randomText);
+    await postTodo(randomText);
 
     const items = await scanAllItems(tableName);
     expect(items.length).toBe(1);
@@ -95,8 +94,8 @@ describe("handler", () => {
   it("複数回JSONをPOSTすると、その数だけデータベースに追加されている", async () => {
     await deleteAllItems(tableName);
 
-    await postTodo(tableName, "foo");
-    await postTodo(tableName, "foo");
+    await postTodo("foo");
+    await postTodo("foo");
 
     const items = await scanAllItems(tableName);
     expect(items.length).toBe(2);
@@ -104,7 +103,7 @@ describe("handler", () => {
 
   it("GETをすると現在のデータベースの項目すべてがリストとして返される", async () => {
     await deleteAllItems(tableName);
-    await postTodo(tableName, "test123");
+    await postTodo("test123");
 
     const event = {
       headers: {},
@@ -127,7 +126,7 @@ describe("handler", () => {
   it("POSTしたときに新しく追加されたidを返す", async () => {
     await deleteAllItems(tableName);
 
-    const id = await postTodo(tableName, "foo");
+    const id = await postTodo("foo");
 
     const items = await scanAllItems(tableName);
     expect(items.length).toBe(1);
@@ -137,8 +136,8 @@ describe("handler", () => {
   it("GET todo/{id}をするとその項目だけを返す", async () => {
     await deleteAllItems(tableName);
 
-    const id1 = await postTodo(tableName, "foo");
-    await postTodo(tableName, "bar");
+    const id1 = await postTodo("foo");
+    await postTodo("bar");
 
     const event = {
       headers: {},
@@ -175,8 +174,8 @@ describe("handler", () => {
 
   it("DELETE todo/{id}すると、そのIDを削除する", async () => {
     await deleteAllItems(tableName);
-    const id1 = await postTodo(tableName, "foo");
-    const id2 = await postTodo(tableName, "bar");
+    const id1 = await postTodo("foo");
+    const id2 = await postTodo("bar");
 
     const event = {
       headers: {},
