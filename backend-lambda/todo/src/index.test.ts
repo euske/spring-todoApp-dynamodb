@@ -6,7 +6,7 @@ import {
   DeleteCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { Context, LambdaFunctionURLEvent } from "aws-lambda";
+import { Context, APIGatewayEvent } from "aws-lambda";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -47,35 +47,27 @@ describe("handler", () => {
     }
   };
 
-  const makeLambdaEvent = (method: HttpMethod, path: string, body?: unknown): LambdaFunctionURLEvent => {
+  const makeLambdaEvent = (
+    httpMethod: HttpMethod,
+    path: string,
+    body?: unknown,
+  ): APIGatewayEvent => {
     return {
       headers: {},
-      requestContext: {
-        http: {
-          method: method,
-          path: path,
-        },
-      },
+      httpMethod: httpMethod,
+      path: path,
       body: body && JSON.stringify(body),
-    } as LambdaFunctionURLEvent;
-  }
+    } as APIGatewayEvent;
+  };
 
   const postTodo = async (text: string): Promise<string> => {
-    const event = makeLambdaEvent(
-      'POST',
-      '/api/todo',
-      { text: text }
-    )
+    const event = makeLambdaEvent("POST", "/api/todo", { text: text });
     const response = await handler(event, {} as Context, () => {}, config);
     return response.body! as string;
   };
 
   it("エンドポイントへのPOSTがステータス200を返す", async () => {
-    const event = makeLambdaEvent(
-      'POST',
-      '/api/todo',
-      {}
-    )
+    const event = makeLambdaEvent("POST", "/api/todo", {});
     const response = await handler(event, {} as Context, () => {}, config);
 
     expect(response.statusCode).toBe(200);
@@ -106,10 +98,7 @@ describe("handler", () => {
     await deleteAllItems(tableName);
     await postTodo("test123");
 
-    const event = makeLambdaEvent(
-      'GET',
-      '/api/todo',
-    )
+    const event = makeLambdaEvent("GET", "/api/todo");
     const response = await handler(event, {} as Context, () => {}, config);
 
     expect(response.statusCode).toBe(200);
@@ -135,10 +124,7 @@ describe("handler", () => {
     const id1 = await postTodo("foo");
     await postTodo("bar");
 
-    const event = makeLambdaEvent(
-      'GET',
-      `/api/todo/${id1}`,
-    )
+    const event = makeLambdaEvent("GET", `/api/todo/${id1}`);
     const response = await handler(event, {} as Context, () => {}, config);
 
     const item = JSON.parse(response.body!) as TodoItem;
@@ -149,10 +135,7 @@ describe("handler", () => {
   it("存在しないIDを取得しようとすると404エラーを返す", async () => {
     await deleteAllItems(tableName);
 
-    const event = makeLambdaEvent(
-      'GET',
-      "/api/todo/1234",
-    )
+    const event = makeLambdaEvent("GET", "/api/todo/1234");
     const response = await handler(event, {} as Context, () => {}, config);
 
     expect(response.statusCode).toBe(404);
@@ -163,10 +146,7 @@ describe("handler", () => {
     const id1 = await postTodo("foo");
     const id2 = await postTodo("bar");
 
-    const event = makeLambdaEvent(
-      'DELETE',
-      `/api/todo/${id2}`,
-    )
+    const event = makeLambdaEvent("DELETE", `/api/todo/${id2}`);
     await handler(event, {} as Context, () => {}, config);
 
     const items: TodoItem[] = await scanAllItems(tableName);

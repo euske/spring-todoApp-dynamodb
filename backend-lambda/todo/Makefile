@@ -10,7 +10,7 @@ AWS_REGION=ap-northeast-1
 
 API_NAME=todo_api
 FUNCTION_NAME=todo_lambda
-ENDPOINT_PATH=/api/todo
+ENDPOINT_PATH=/dev/api/todo
 SINCE=1h
 
 .PHONY: all deploy build test lint clean invoke tail

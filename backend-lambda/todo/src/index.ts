@@ -1,4 +1,9 @@
-import { Callback, Context, LambdaFunctionURLEvent } from "aws-lambda";
+import {
+  APIGatewayEvent,
+  Callback,
+  Context,
+  LambdaFunctionURLEvent,
+} from "aws-lambda";
 import { APIGatewayProxyStructuredResultV2 } from "aws-lambda/trigger/api-gateway-proxy";
 import { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
 import {
@@ -27,7 +32,7 @@ export type TodoItem = {
 };
 
 export const handler = async (
-  event: LambdaFunctionURLEvent,
+  event: APIGatewayEvent,
   context: Context,
   callback: Callback,
   defaultConfig?: Config,
@@ -39,9 +44,8 @@ export const handler = async (
   const client = new DynamoDBClient(config.dynamoDBClientConfig);
   const docClient = DynamoDBDocumentClient.from(client);
 
-  const http = event.requestContext.http;
-  const method = http.method;
-  const path = http.path;
+  const method = event.httpMethod;
+  const path = event.path;
 
   if (method === "POST" && path === "/api/todo") {
     const request = JSON.parse(event.body || "{}");
@@ -110,7 +114,7 @@ export const handler = async (
   } else {
     return {
       statusCode: 400,
-      body: "bad request",
+      body: JSON.stringify("bad request"),
     };
   }
 };
