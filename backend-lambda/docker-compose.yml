@@ -9,5 +9,17 @@ services:
       DISABLE_CORS_CHECKS: 1
       DYNAMODB_SHARE_DB: 1
     volumes:
-      - ./localstack/:/etc/localstack/init/ready.d/
       - /var/run/docker.sock:/var/run/docker.sock
+
+  setup-localstack:
+    image: ghcr.io/opentofu/opentofu
+    depends_on:
+      - localstack
+    restart: no
+    volumes:
+      - ./terraform:/tmp/terraform
+    environment:
+      AWS_ENDPOINT_URL: http://localstack:4566/
+      AWS_ACCESS_KEY_ID: xxx
+      AWS_SECRET_ACCESS_KEY: yyy
+    entrypoint: [ '/bin/sh', '-c', 'cd /tmp/terraform && tofu init && tofu apply -auto-approve' ]
