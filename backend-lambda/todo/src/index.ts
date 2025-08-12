@@ -111,6 +111,21 @@ export const handler = async (
       },
       body: JSON.stringify(response.Items),
     };
+  } else if (method === "PUT" && path.startsWith("/api/todo/")) {
+    const id = path.split("/")[3];
+    const request = JSON.parse(event.body || "{}");
+    const command = new PutCommand({
+      TableName: tableName,
+      Item: {
+        id: id,
+        text: request.text,
+      },
+    });
+    await docClient.send(command);
+    return {
+      statusCode: 200,
+      body: id,
+    };
   } else {
     return {
       statusCode: 400,
