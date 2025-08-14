@@ -12,6 +12,8 @@ export default defineConfig({
     setupFiles: './vitest.setup.ts',
   },
   server: {
+    host: '0.0.0.0',
+    allowedHosts: ['localhost', 'host.docker.internal'],
     proxy: {
       '/api': {
         target: BASE_URL,
