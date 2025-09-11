@@ -2,6 +2,7 @@
 
 .PHONY: all buildImage runImage test run clean
 
+RM=rm -f
 GRADLE=./gradlew
 DOCKER=docker
 TAG=todo:latest
@@ -24,6 +25,7 @@ run:
 clean:
 	-$(DOCKER) image rm $(TAG)
 	-$(GRADLE) clean
+	-$(RM) -r ./src/main/resources/public
 
 $(JAR):
 	$(GRADLE) assemble

@@ -4,19 +4,27 @@
 
 NPM=npm
 RM=rm -f
+CP=cp
 
 all:
 
-build:
+ci:
+	$(NPM) ci
+
+build: ci
 	$(NPM) run build
 
-lint:
+install: build
+	-$(RM) -r ../backend-spring/src/main/resources/public/dist
+	$(CP) -a ./dist ../backend-spring/src/main/resources/public
+
+lint: ci
 	$(NPM) run lint
 
-run:
+run: ci
 	$(NPM) run dev
 
-test:
+test: ci
 	$(NPM) run test
 
 clean:

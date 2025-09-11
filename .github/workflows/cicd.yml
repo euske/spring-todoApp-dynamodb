@@ -27,6 +27,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: make install
+
       - name: Build Backend
         working-directory: ./backend-spring
         run: ./gradlew assemble
