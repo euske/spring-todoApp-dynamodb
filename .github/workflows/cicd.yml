@@ -27,15 +27,15 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Backend Build
+      - name: Build Backend
         working-directory: ./backend-spring
         run: ./gradlew assemble
 
-      - name: Backend Run
+      - name: Start Backend
         working-directory: ./backend-spring
         run: |
           set -x
-          java -jar ./build/libs/todoapp-0.0.1-SNAPSHOT.jar &
+          ./gradlew bootRun &
           sleep 10
           curl -o /dev/null --retry-connrefused --retry 5 --retry-delay 10 http://localhost:8080/
 

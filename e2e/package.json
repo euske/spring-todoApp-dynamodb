@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test --reporter html",
+    "test:docker": "playwright test"
   },
   "keywords": [],
   "author": "",
