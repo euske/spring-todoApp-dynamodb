@@ -35,9 +35,9 @@ jobs:
         working-directory: ./backend-spring
         run: |
           set -x
-          ./gradlew bootRun &
-          sleep 5
-          curl -o /dev/null --retry-connrefused --retry 5 --retry-delay 5 http://localhost:8080/
+          java -jar ./build/libs/todoapp-0.0.1-SNAPSHOT.jar &
+          sleep 10
+          curl -o /dev/null --retry-connrefused --retry 5 --retry-delay 10 http://localhost:8080/
 
       - name: Run E2E tests
         working-directory: ./e2e
