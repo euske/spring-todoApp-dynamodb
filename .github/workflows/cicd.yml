@@ -37,11 +37,7 @@ jobs:
 
       - name: Start Backend
         working-directory: ./backend-spring
-        run: |
-          set -x
-          ./gradlew bootRun &
-          sleep 10
-          curl -o /dev/null --retry-connrefused --retry 5 --retry-delay 10 http://localhost:8080/
+        run: make start
 
       - name: Run E2E tests
         working-directory: ./e2e
