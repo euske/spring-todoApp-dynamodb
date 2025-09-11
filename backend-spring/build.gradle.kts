@@ -30,7 +30,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("software.amazon.awssdk:dynamodb:2.31.77")
-    runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -52,7 +52,7 @@ tasks.withType<Test> {
 }
 
 tasks.named<JavaExec>("bootRun") {
-    setIgnoreExitValue(true)
+    isIgnoreExitValue = true
     doLast {
         if (executionResult.get().exitValue == 128 + 15) { // SIGTERM
             logger.lifecycle("Task terminated by SIGTERM.")
