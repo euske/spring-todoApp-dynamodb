@@ -1,0 +1,46 @@
+name: Todo App CI/CD workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "corretto"
+          java-version: "21"
+          cache: "gradle"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Backend Build
+        working-directory: ./backend-spring
+        run: ./gradlew assemble
+
+      - name: Backend Run
+        working-directory: ./backend-spring
+        run: |
+          set -x
+          ./gradlew bootRun &
+          sleep 5
+          curl -o /dev/null --retry-connrefused --retry 5 --retry-delay 5 http://localhost:8080/
+
+      - name: Run E2E tests
+        working-directory: ./e2e
+        env:
+          CI: true
+        run: make test-docker PORT=8080

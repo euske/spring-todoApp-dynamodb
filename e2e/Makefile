@@ -5,6 +5,7 @@
 NPM=npm
 RM=rm -f
 PLAYWRIGHT=mcr.microsoft.com/playwright:v1.51.1
+PORT=5173
 
 all: test
 
@@ -14,8 +15,9 @@ test-local:
 	$(NPM) run test
 
 test-docker:
-	docker run -it --rm -v .:/e2e --ipc=host $(PLAYWRIGHT) \
-		sh -c 'cd /e2e && BASE_URL=http://host.docker.internal:5173/ npm run test'
+	docker run --rm -v .:/e2e -e CI=$$CI --ipc=host \
+		--add-host=host.docker.internal:host-gateway $(PLAYWRIGHT) \
+		sh -c 'cd /e2e && npm ci && BASE_URL=http://host.docker.internal:$(PORT)/ npm run test:docker'
 
 clean:
 	-$(RM) -r ./playwright-report
