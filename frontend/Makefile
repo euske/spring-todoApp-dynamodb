@@ -11,20 +11,20 @@ all:
 ci:
 	$(NPM) ci
 
-build: ci
+build:
 	$(NPM) run build
 
 install: build
 	-$(RM) -r ../backend-spring/src/main/resources/public/dist
 	$(CP) -a ./dist ../backend-spring/src/main/resources/public
 
-lint: ci
+lint:
 	$(NPM) run lint
 
-run: ci
+run:
 	$(NPM) run dev
 
-test: ci
+test:
 	$(NPM) run test
 
 clean:

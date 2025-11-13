@@ -5,17 +5,16 @@ DynamoDB (Localstack) を使ったTODOアプリのサンプル。
 ## Contents
 
 - `README.md`: このファイル。
-- `backend-spring/`: Spring Bootバックエンド。
+- `backend/`: Spring Bootバックエンド。
   - テスト時: Testcontainersを使用。
   - 実行時: Spring Boot Docker Composeを使用。
-- `backend-lambda/`: Lambdaバックエンド。
-- `frontend`: フロントエンド (React + Vite + TS)。
-- `e2e`: E2Eテスト (Playwright)。
+- `frontend/`: フロントエンド (React + Vite + TS)。
+- `e2e/`: E2Eテスト (Playwright)。
 
 ## How to Run
 
 ```shell
-$ cd ./backend-spring
+$ cd ./backend
 $ ./gradlew bootRun
 ```
 
