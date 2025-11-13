@@ -32,11 +32,11 @@ jobs:
         run: make install
 
       - name: Build Backend
-        working-directory: ./backend-spring
+        working-directory: ./backend
         run: ./gradlew assemble
 
       - name: Start Backend
-        working-directory: ./backend-spring
+        working-directory: ./backend
         run: make start
 
       - name: Run E2E tests
